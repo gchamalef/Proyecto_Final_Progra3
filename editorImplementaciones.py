@@ -61,7 +61,7 @@ class EditorHTML:
 
         # Menú Edición
         edit_menu = tk.Menu(menubar, tearoff=0)
-        edit_menu.add_command(label="Ir a...", command=self.ir_a_palabra)
+        edit_menu.add_command(label="Ir a...", command=self.ir_a_linea)
         edit_menu.add_command(label="Buscar", command=self.buscar)
         edit_menu.add_command(label="Reemplazar", command=self.reemplazar)
         menubar.add_cascade(label="Edición", menu=edit_menu)
@@ -170,6 +170,7 @@ class EditorHTML:
         self.root.quit()
 
     def buscar(self):
+        self.text_area.tag_remove("resaltado", "1.0", tk.END)
         buscar = simpledialog.askstring("Buscar", "Buscar:")
         if buscar:
             start = "1.0"
@@ -213,26 +214,19 @@ class EditorHTML:
                 if ocurrencias_reemplazadas == 0:
                     messagebox.showinfo("Palabra no encontrada", f"No se encontró la palabra '{buscar}' en el documento actual.")
 
-    def ir_a_palabra(self):
-        palabra = simpledialog.askstring("Ir a palabra", "Palabra:")
-        if palabra:
-            start = "1.0"
-            ocurrencias_encontradas = False
-            while True:
-                start = self.text_area.search(palabra, start, stopindex=tk.END, regexp=True, nocase=True)
-                if not start:
-                    break
-                ocurrencias_encontradas = True
-                end = f"{start}+{len(palabra)}c"
-                self.text_area.tag_add("resaltado", start, end)  # Agregar resaltado
-                self.text_area.tag_config("resaltado", background="yellow")  # Configurar color de fondo
-                self.text_area.mark_set("insert", start)
-                self.text_area.see(start)
-                self.text_area.focus_set()
-                start = end
-
-            if not ocurrencias_encontradas:
-                messagebox.showinfo("Palabra no encontrada", f"No se encontró la palabra '{palabra}' en el documento actual.")
+    def ir_a_linea(self):
+        numero_linea = simpledialog.askinteger("Ir a linea", "Numero de linea: ")
+        if numero_linea:
+            linea = f"{numero_linea}.0"
+            end = f"{numero_linea + 1}.0"
+            self.text_area.tag_remove("resaltado", "1.0", tk.END)
+            self.text_area.tag_add("resaltado", linea, end)
+            self.text_area.tag_config("resaltado", background="yellow")
+            self.text_area.mark_set("insert", linea)
+            self.text_area.see(linea)
+            self.text_area.focus_set()
+            if not self.text_area.tag_ranges("resaltado"):
+                messagebox.showinfo("Linea no encontrada", f"No se encontro la linea {numero_linea}.")
 
     def imprimir(self):
         #Guardar el contenido actual en un archivo temporal
